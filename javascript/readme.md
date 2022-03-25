@@ -42,11 +42,15 @@ console.log(x);      // 20
 
     在进入作用域创建变量，到变量可以被访问之间的这一段时间，称为 **“暂时性死区”**（ temporal dead zone，简称 **TDZ**）
 
-
+在JS引擎扫描代码发现变量声明时，遇到var声明就提升到作用域顶部，遇到let和const就把这些声明放在暂时性死区。对于let和const变量，如果在执行它们的声明语句之前访问会报错，只有执行完声明语句之后才会从暂时性死区移出。
 
 #### Hoist
 
-函数、变量、类的声明都会发生 [Hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting)，但只有用 `var` 和 函数在会自动赋值：变量为 `undefined`，函数为函数体
+函数、变量、类的声明都会发生 [Hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting)，但只有用 `var` 和 `function` 会自动初始化：
+
+> ver 为初始化 `undefined`
+>
+> 函数声明 `function foo(){...}`，会在内存里创建函数对象，并且直接初始化为该函数对象。
 
 [Function expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function) 和 [Class expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes#class_expressions) 不会被 hoisted
 
@@ -140,7 +144,7 @@ Sometimes people say something like “Array type” or “Date type”, but for
 
 #### 数据类型的判断
 
-**typeof**：获取变量的类型，7 种基本类型 + "`object`"
+**typeof**：获取变量的类型，7 种基本类型 + "`function`" + "`object`"
 
 **instanceof**：用于检测构造函数的 `prototype` 属性是否出现在某个实例对象的原型链上，[参考](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/instanceof)
 
@@ -479,7 +483,7 @@ var normal = new Normal();
 
 也可以为函引指定上下文  `this` 
 
-+ `func.apply(context, args)`：执行一个函数，参数为数组
++ `func.apply(context, [...args])`：执行一个函数，参数为数组
 + `func.call(context, ...args)`：执行一个函数，参数为 *iterable* `args` 
 + `func.bind(context, [arg1], [arg2], ...)`：创建一个和 `func` 一样的函数，但是把它的上下文设置为传入的 `context`，如果还传有参数，也同把参数设置好
 
@@ -538,15 +542,19 @@ user.sayNow("Hello"); // [10:00] John: Hello!
 
 **闭包的原理**：[参考](https://javascript.info/closure)
 
-所有的函数都有一个隐藏属性 `[[Environment]]` 用来指向这个函数被创建时所处的词法环境（Lexical Environment）
+词法环境与我们自己写的代码结构相对应，也就是我们自己代码写成什么样子，词法环境就是什么样子。
+
+> 词法环境 Lexical Environment 是在 V8 引擎词法分析阶段用来登记变量的，词法分析后解析生成AST，最后生成机器码执行
+
+**词法环境是在代码定义的时候决定的，跟代码在哪里调用没有关系**。[参考](https://limeii.github.io/2019/05/js-lexical-environment/)，每个词法环境都会有个 `outer` 指向上一层的词法环境对象
 
 ![img](readme/closure-makecounter-environment.svg)
 
-当这个函数被执行的时候， `[[Environment]]` 指向的对象就会作为该函数的外部环境 `outer`
+当 `counter()` 执行的时候，
 
 ![img](readme/closure-makecounter-nested-call.svg)
 
-
+**闭包**就是指：执行完的 `执行上下文` 被弹出执行栈，它的词法环境处于失联状态，后续的执行上下文没办法直接访问这个失联的词法环境。在这种情况下还保留了对那个词法环境的`引用`，从而可以通过这个`引用`去访问失联的词法环境，这个`引用`就是闭包。
 
 典型的闭包:  
 
@@ -787,7 +795,22 @@ await 可以用于等待一个 async 函数的返回值，如果它等到的是�
 
 async/await 使得异步代码看起来像同步代码，使代码简洁，可读性更好，避免嵌套。  
 
+```js
+async function async1() {
+	console.log('async1 start');
+	await async2();
+	console.log('async1 end');
+}
 
+等价于
+
+async function async1() {
+	console.log('async1 start');
+	Promise.resolve(async2()).then(() => {
+        console.log('async1 end');
+    })
+}
+```
 
 #### all
 
@@ -944,23 +967,19 @@ element.addEventListener(event, function, useCapture)
 节流：一个单位时间内，只能触发一次函数
 
 ```javascript
-function throttle(fun, delay) {
-    let last, deferTimer
-    return function (args) {
-        let that = this
-        let _args = arguments
-        let now = new Date()
-        
-        if (last && now < last + delay) {
-            clearTimeout(deferTimer)
-            deferTimer = setTimeout(function () {
-                last = now
-                fun.apply(that, _args)
-            }, delay)
-        } else {
-            last = now
-            fun.apply(that, _args)
-        }
+function throttle(fn,delay){
+    let valid = true
+    return function() {
+       if(!valid){
+           //休息时间 暂不接客
+           return false 
+       }
+       // 工作时间，执行函数并且在间隔期内把状态位设为无效
+        valid = false
+        setTimeout(() => {
+            fn()
+            valid = true;
+        }, delay)
     }
 }
 ```
@@ -974,12 +993,13 @@ function throttle(fun, delay) {
 
 ```javascript
 function debounce(fun, delay) {
+    let timer;
     return function (args) {
-        let that = this
+        let _this = this
         let _args = args
-        clearTimeout(fun.id)
-        fun.id = setTimeout(function () {
-            fun.call(that, _args)
+        clearTimeout(timer)
+        timer = setTimeout(function () {
+            fun.call(_this, _args)
         }, delay)
     }
 }
@@ -1157,5 +1177,27 @@ worker.slow = cachingDecorator(worker.slow, hash);
 alert( worker.slow(3, 5) );
 
 alert( "Again " + worker.slow(3, 5) ); // same (cached)
+```
+
+### bind / call
+
+```javascript
+Function.prototype.myCall = function(context) {
+    // 给 context 添加一个属性
+    context.fn = this;
+    let args = [...arguments].slice(1)
+    let result = context.fn(...args)
+    // 删除刚添加的 fn
+    delete context.fn
+    return result;
+}
+
+Function.prototype.mybind = function(context) {
+    var args = [...arguments].slice(1);
+    let _func = this
+    return function() {
+        _func.apply(context, args.concat(...arguments))
+    }
+}
 ```
 

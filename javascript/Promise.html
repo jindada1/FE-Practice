@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise</title>
+</head>
+<style>
+</style>
+
+<body>
+</body>
+<script>
+
+    (function type_of_promise_then() {
+        let p = new Promise(function (resolve, reject) {
+            setTimeout(() => resolve(1), 1000);
+        })
+
+        let th = p.then(function (result) {
+            console.log(result); // 1
+            return result * 2;
+        })
+
+        console.log(p, th);
+        setTimeout(() => console.log(p, th), 1000);
+    });
+
+    (function throw_error_in_then() {
+        new Promise(function (resolve, reject) {
+            setTimeout(() => resolve(1), 1000);
+        }).then(function (result) {
+            console.log(result); // 1
+            return result * 2;
+        }).then(function (result) {
+            console.log(result); // 2
+            throw new Error("qweqwe");
+            return result * 2;
+        }).then(function (result) {
+            console.log("3", result); // 4
+            return result * 2;
+
+        }).catch((err) => {
+            console.log(err);
+        });
+    });
+
+    (function throw_error_in_promise_in_then() {
+        new Promise(function (resolve, reject) {
+            setTimeout(() => resolve(1), 500);
+        }).then(function (result) {
+            console.log(result); // 1
+            return result * 2;
+        }).then(function (result) {
+            console.log(result); // 2
+            // throw new Error("qweqwe");
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // resolve(result * 2)
+                    reject(result * 2)
+                }, 500)
+            })
+        }).then(function (result) {
+            console.log("--", result); // 4
+            return result * 2;
+        }, (err) => {
+            // 被这个捕获
+            console.log("error inside then", err);
+        }).catch((err) => {
+            console.log("error", err);
+        });
+    });
+
+    (function then_in_settled_promise() {
+        let settled = new Promise((resolve, reject) => {
+            reject("11111")
+        })
+
+        console.log(settled);
+
+        settled.then(
+            () => console.log("inside then"),
+            () => console.log("inside then")
+        )
+        console.log("same block");
+
+        /**
+         * Promise {<rejected>: '11111'}
+         * Promise use.html:135 same block
+         * Promise use.html:133 inside then
+         */
+    });
+
+    (function promise_resolve() {
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(2)
+            }, 500)
+        })
+
+        let resolved = Promise.resolve("p")
+
+        resolved.then(
+            (qq) => console.log("qq", qq),
+            (ww) => console.log("ww", ww)
+        )
+
+        console.log(p, resolved);
+
+    });
+
+    (function promisification(params) {
+
+        function use_callback(i, callback) {
+            setTimeout(() => {
+                if (i > 3) callback(null, i)
+                else callback(new Error(`Error ${i} <= 3`));
+            }, 500)
+        }
+
+        // use_callback(4, (err, result) => {
+        //     console.log(err, result);
+        // })
+
+        function promisify(func) {
+            return function (...args) {
+                return new Promise((resolve, reject) => {
+                    func.call(this, ...args, (err, result) => {
+                        if (err) {
+                            reject(err)
+                        }
+                        resolve(result)
+                    })
+                })
+            }
+        }
+
+        let promisified = promisify(use_callback);
+        promisified(2)
+            .then(console.log)
+            .catch((err) => {
+                console.log(err);
+            })
+    });
+
+    (function microtasks(params) {
+        let i = 0;
+        let times = 1e9
+
+        let start = Date.now();
+
+        function count() {
+            if (i < times - 1e6) {
+                console.log("setTimeout");
+                setTimeout(count); // 安排（schedule）新的调用 (**)
+            }
+
+            // 做繁重的任务的一部分 (*)
+            do {
+                i++;
+            } while (i % 1e7 != 0);
+            console.log("c");
+
+            if (i == times) {
+                alert("Done in " + (Date.now() - start) + 'ms');
+            }
+        }
+
+        count();
+    });
+
+    (function my_promise(params) {
+
+        function myPromise(fn) {
+            let state = "pending",
+                value = null,
+                callbacks = [];  // 多个回调
+
+            this.then = function (onFulfilled) {
+                return new myPromise(function (resolve) {
+                    handle({
+                        onFulfilled: onFulfilled || null,
+                        resolve: resolve
+                    });
+                });
+            };
+
+            function handle(callback) {
+                if (state === 'pending') {
+                    // 当前处在 pending 阶段，把回调入队
+                    callbacks.push(callback);
+                    console.log(callbacks);
+                    return;
+                }
+
+                // 否则直接消费结果
+
+                // 如果 then 中没有传递回调
+                if (!callback.onFulfilled) {
+                    callback.resolve(value);
+                    return;
+                }
+
+                // 执行当前 promise 的回调
+                var ret = callback.onFulfilled(value);
+                // 触发下一个 promise 的 resolve
+                callback.resolve(ret);
+            }
+
+            // resolve 传递给用户传进来的操作函数，让用户调用它处理正确结果
+            function resolve(newValue) {
+                value = newValue;
+                state = 'fulfilled';
+                console.log("Promise resolve", newValue);
+                // 通过 setTimeout 机制，将 resolve 中执行回调的逻辑放置到JS任务队列末尾，
+                // 保证在用户执行 resolve 之前，所有的回调已经通过 then 方法注册完
+                setTimeout(function () {
+                    callbacks.forEach(function (callback) {
+                        handle(callback);
+                    });
+                }, 0)
+            }
+
+            fn(resolve);
+        }
+
+        function getUserJobById(id) {
+            return new myPromise(function (resolve) {
+                //异步请求
+                setTimeout(() => {
+                    resolve(id + "user job")
+                }, 500)
+            });
+        }
+
+    });
+
+</script>
+
+</html>

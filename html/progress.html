@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', sans-serif;
+    }
+
+    html,
+    body {
+        display: grid;
+        height: 100%;
+        text-align: center;
+        place-items: center;
+        background: #dde6f0;
+    }
+
+    .circular {
+        height: 100px;
+        width: 100px;
+        position: relative;
+        transform: scale(2);
+    }
+
+    .circular .bar {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background: #fff;
+        /* -webkit-border-radius: 100%; */
+        clip: rect(0px, 100px, 100px, 50px);
+    }
+
+    .circle .bar .progress {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        /* -webkit-border-radius: 100%; */
+        clip: rect(0px, 50px, 100px, 0px);
+        background: #4158d0;
+        animation: rotate 4s linear both;
+    }
+
+
+    .circle .left {
+        transform: rotate(180deg);
+        z-index: 1;
+    }
+
+    .circle .left .progress {
+        animation-delay: 4s;
+    }
+
+    @keyframes rotate {
+        100% {
+            transform: rotate(180deg);
+        }
+    }
+</style>
+
+<body>
+    <div class="circular">
+        <div class="circle">
+            <div class="bar right">
+                <div class="progress"></div>
+            </div>
+            <div class="bar left">
+                <div class="progress"></div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+
+
+</script>
+
+</html>

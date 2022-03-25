@@ -26,6 +26,10 @@ HTML 5：
 
 
 
+### CDN
+
+内容交付网络 (CDN) 是一组分布在不同地理位置的服务器，它将 Web 内容存放在更靠近用户的位置，从而加速 Web 内容的交付。全球各地的数据中心都使用缓存，这是一种临时存储文件副本的过程，让您可以通过距离您所在地点较近的服务器，更快速地使用支持上网的设备或浏览器访问互联网内容。[参考](https://www.akamai.com/zh/our-thinking/cdn/what-is-a-cdn)
+
 
 
 ## HTTP
@@ -93,6 +97,8 @@ Pipelining 这种设想看起来比较美好，但是在实践中会出现许多
 <img src="readme/http2.svg" alt="Figure 12-2. HTTP/2 streams, messages, and frames" style="height: 460px" />
 
 上面协议解析中提到的 `stream id` 就是用作连接共享机制的。一个 **request** 对应一个 stream 并分配一个 id，这样一个连接上可以有多个 stream，每个 stream 的 frame 可以随机的混杂在一起，接收方可以根据 `stream id` 将 frame 再归属到各自不同的 **request** 里面
+
+**将 HTTP 消息分解为独立的帧，交错发送，然后在另一端重新组装**是 HTTP 2 最重要的一项增强。
 
 每个 stream 都可以设置又优先级（Priority）和依赖（Dependency）
 
@@ -264,6 +270,8 @@ document.cookie = "user=John; path=/; expires=Tue, 19 Jan 2038 03:14:07 GMT"
 
 当你打开含有了这张图片的 HTML 页面时，如果你之前已经登录了你的银行帐号并且 Cookie 仍然有效（还没有其它验证步骤），你银行里的钱很可能会被自动转走。
 
+通常，浏览器会对跨域 CORS 请求作出限制。 浏览器之所以要对跨域请求作出限制，是出于安全方面的考虑，因为跨域请求有可能被不法分子利用来发动 CSRF 攻击。
+
 
 
 **防范措施**：
@@ -338,8 +346,6 @@ document.cookie = "user=John; path=/; expires=Tue, 19 Jan 2038 03:14:07 GMT"
 | Visibility                                                 | Data is visible to everyone in the URL                       | Data is not displayed in the URL                             |
 
 在 HTTPS 中，建立连接时发送的 `ClientHello` 包中有域名信息，之后发送的 HTTP 请求都是加密后的数据，例如 `/path/?some=parameters&go=here` 等，都是安全的
-
-[有说法说](https://blog.actorsfit.com/a?ID=01400-e89d5025-7b0c-4743-85f3-b11e6d13018b)，有些浏览器会把POST 请求的 header 和 body 分别装在两个 TCP 包里发送；而 GET 只需要发送一个包
 
 
 
@@ -542,6 +548,10 @@ HTML 的[生命周期事件](https://javascript.info/onload-ondomcontentloaded)�
     });
     ```
 
+### BOM & DOM
+
+![img](readme/16d191f327978675tplv-t2oaga2asx-zoom-in-crop-mark1304000.awebp)
+
 >  window 包含 document，即 window.document
 
 ![img](readme/window-document.jpg)
@@ -588,6 +598,8 @@ IE 盒模型：`box-sizing：border-box`  ，宽度 width = content + border + p
 **BFC(Block Formatting Context)**：块级格式化上下文。[参考](https://segmentfault.com/a/1190000013069516)
 
 BFC 决定了元素如何对其内容进行定位，以及与其他元素的关系和相互作用。当设计到可视化布局的时候，BFC 提供了一个环境，HTML元素在这个环境中按照一定的规则进行布局。一个环境中的元素不会影响到其他环境中的布局。
+
+BFC 的外边框就不会与其它元素重叠
 
 **BFC的原理**
 

@@ -1,0 +1,35 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex 布局</title>
+</head>
+<style>
+    .container {
+        background-color: cadetblue;
+        height: 300px;
+        display: flex;
+        flex-direction: column;    /* 主轴向下，内部元素沿主轴分布 */
+        justify-content: center;   /* 元素分布在主轴的中心，显示出来就是垂直居中 */
+        align-items: center;       /* 元素与元素的对齐方式为居中对齐，显示出来就是水平居中*/
+    }
+
+    .content {
+        background-color: antiquewhite;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="content">
+            123123
+        </div>
+        <div class="content">
+            1231233333
+        </div>
+    </div>
+</body>
+
+</html>
