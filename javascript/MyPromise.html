@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Promise</title>
+  </head>
+  <body>
+    <div id="panel"></div>
+  </body>
+  <script>
+    const panel = document.getElementById("panel");
+    function show(msg) {
+      panel.innerHTML += `<div>${msg}</div>`;
+    }
+
+    function asyncFunc(cb, time = 1) {
+      setTimeout(cb, time * 1000);
+    }
+
+    // 极简的实现
+    class MyPromise {
+      callbacks = [];
+
+      PENDING = 0
+      FULLFILLED = 1
+      REJECTED = 2
+      
+      // 如果在 resolve 执行之后接入 then，比如 resolve 被同步执行
+      // 如果想获取结果，此时就需要保存状态和结果
+      state = this.PENDING; // 初始状态
+      value = null;    //保存结果
+      
+      // new Promise 对象时，调用传入的函数，把自己的 resolve 和 reject 作为参数注入
+      // 用户传入的函数中需要调用注入的 resolve 和 reject
+      constructor(fn) {
+        fn(this.resolve.bind(this));
+      }
+
+      then(onFulfilled) {
+        show(this.callbacks.length)
+        // 在 resolve 执行之前接入 then，加入回调队列
+        if (this.state === this.PENDING) {
+            this.callbacks.push(onFulfilled);
+        }
+        // 在 resolve 执行之后接入 then，直接传入结果调用回调
+        else {
+            onFulfilled(this.value)
+        }
+        return this
+      }
+
+      resolve(value) {
+        // resolve 的时候更新状态，同时记录结果
+        this.state = this.FULLFILLED;
+        this.value = value
+        // 调用已注册的 then
+        this.callbacks.forEach((fn) => fn(value));
+      }
+    }
+
+    const p = new MyPromise((resolve) => {
+        // asyncFunc(() => resolve('resolve'))
+        resolve('sync resolve')
+    })
+    
+    p.then((res) => {
+        show(res + '1')
+    }).then((res) => {
+        show(res + '1.1')
+    })
+
+    p.then((res) => {
+        show(res + '2')
+    })
+
+
+  </script>
+</html>
