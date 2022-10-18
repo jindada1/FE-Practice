@@ -998,23 +998,23 @@ element.addEventListener(event, function, useCapture)
 
 是优化高频率执行代码的一种手段，高频事件在触发时，会不断地调用绑定在事件上的回调函数，影响性能
 
-节流：一个单位时间内，只能触发一次函数
+**节流**：一个单位时间内，只能触发一次函数
 
 ```javascript
-function throttle(fn,delay){
-    let valid = true
-    return function() {
-       if(!valid){
-           //休息时间 暂不接客
-           return false 
-       }
-       // 工作时间，执行函数并且在间隔期内把状态位设为无效
-        valid = false
-        setTimeout(() => {
-            fn()
-            valid = true;
-        }, delay)
-    }
+// 节流
+function throttle(fn, delay = 1000) {
+    // 上依次执行该函数的时间戳
+    let previous = 0
+    return function (...args) {
+        const context = this;
+        // 获取当前时间
+        const now = new Date();
+        // 当前时间 - 上依次执行的时间 > 延迟时间，就执行
+        if (now - previous > delay) {
+            fn.apply(context, args);
+            previous = now;
+        }
+    };
 }
 ```
 
@@ -1023,19 +1023,28 @@ function throttle(fn,delay){
 
 
 
-防抖：n 秒后在执行该事件，若在 n 秒内被重复触发，则重新计时。用户操作定下来了，再去执行
+**防抖**：n 秒后在执行该事件，若在 n 秒内被重复触发，则重新计时。用户操作定下来了，再去执行
 
 ```javascript
-function debounce(fun, delay) {
-    let timer;
-    return function (args) {
-        let _this = this
-        let _args = args
-        clearTimeout(timer)
-        timer = setTimeout(function () {
-            fun.call(_this, _args)
-        }, delay)
-    }
+// 防抖
+function debounce(fn, delay = 500, immediate = true) {
+    let timer = null;
+    return function (...args) {
+        // ...args 是一个数组，里面是传进来的所有的参数
+        const context = this;
+        // 第一次执行的时候不需要等待
+        if (immediate) {
+            fn.call(context, ...args);
+            // 只会生效一次
+            immediate = false
+            return
+        }
+        if (timer) clearTimeout(timer); // 取消上一个在等的
+        timer = setTimeout(() => {
+            // 下一个等去吧
+            fn.call(context, ...args);
+        }, delay);
+    };
 }
 ```
 

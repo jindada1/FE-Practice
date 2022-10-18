@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Debounce</title>
+    </head>
+    <body>
+        <div id="console"></div>
+    </body>
+    <script>
+        const csl = document.getElementById('console');
+        function print(data) {
+            csl.innerHTML += `<div>${data}</div>`;
+        }
+
+        // 防抖
+        function debounce(fn, delay = 500, immediate = true) {
+            let timer = null;
+            return function (...args) {
+                // ...args 是一个数组，里面是传进来的所有的参数
+                const context = this;
+
+                // 第一次执行的时候不需要等待
+                if (immediate) {
+                    fn.call(context, ...args);
+                    immediate = false
+                    return
+                }
+
+                if (timer) clearTimeout(timer); // 取消上一个在等的
+                timer = setTimeout(() => {
+                    // 下一个等去吧
+                    fn.call(context, ...args);
+                    immediate = true
+                }, delay);
+            };
+        }
+
+        function click(...args) {
+            print('click ' + JSON.stringify(args));
+        }
+
+        const deClick = debounce(click);
+        deClick(1, 2);
+        deClick(2);
+        deClick(3);
+
+        function Demo() {
+            this.x = '--x';
+            this.click = function (str) {
+                print(str + this.x);
+            };
+            this.deClick = debounce(this.click);
+        }
+
+        const demo = new Demo();
+        demo.deClick('debounced');
+        demo.deClick('debounced');
+        demo.deClick('debounced');
+
+        setTimeout(() => {
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+            demo.deClick('after timeout');
+        }, 1000)
+    </script>
+</html>
