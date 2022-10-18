@@ -1,4 +1,4 @@
-## 八股文
+## Vue
 
 https://juejin.cn/post/6844903918753808398
 
@@ -134,8 +134,6 @@ export function nextTick(cb) {
 
 
 
-
-
 ### Virtual Dom
 
 virtual dom 诞生的原因：过多的操作 Dom 影响性能
@@ -159,6 +157,14 @@ virtual dom 很多时候都不是最优的操作，但它具有普适性，在�
 [参考 2：比较同层级同类型节点的子节点](https://www.infoq.cn/article/udlcpkh4iqb0cr5wgy7f)
 
 ![img](readme/1460000041134147.png)
+
+
+
+## Vue3
+
+响应式[原理](https://vuejs.org/guide/extras/reactivity-in-depth.html#how-reactivity-works-in-vue)
+
+
 
 ## vue-router
 
@@ -185,3 +191,7 @@ window.addEventListener('hashchange', matchAndUpdate)
 ## vuex
 
 ![image.png](readme/74845abaa4404ee7a642a2c1168bdff4tplv-k3u1fbpfcp-zoom-in-crop-mark1304000.awebp)
+
+## Pinia
+
+https://pinia.web3doc.top/introduction.html

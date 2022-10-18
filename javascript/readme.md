@@ -1,111 +1,8 @@
-### let, var, const
-
-如果直接给变量赋值，那这个变量是全局变量
-
-```javascript
-+function() {n = 1}() // IIFE 立即执行，还可以加 - ，!，()
-
-console.log(n) // 1
-```
-
-
-
-`var` 比较古老，现在很少用，具有以下特性：
-
-+ **不支持块作用域**：要么是函数作用域，要么是全局作用域
-+ **允许重复声明**：可以重复声明，最后一次声明会覆盖前一次
-+ 变量提升的时候会初始化为 `undefined`
-
-```javascript
-console.log(x);      // undefined
-if (true) {
-    var x = 10
-    console.log(x);  // 10
-    var x = 20
-}
-console.log(x);      // 20
-```
-
-
-
-`let` 和 `const` 具有以下特性：
-
-+ 支持块作用域
-
-+ 不允许重复声明
-
-+ 变量提升的时候不会初始化为 `undefined`，直接使用会报错，不同的环境报不同的错
-
-    ![my-console-hoisting-not-defined](readme/my-console-hoisting-not-defined.png)
-
-    有的是 `Cannot access before initialization`
-
-    在进入作用域创建变量，到变量可以被访问之间的这一段时间，称为 **“暂时性死区”**（ temporal dead zone，简称 **TDZ**）
-
-在JS引擎扫描代码发现变量声明时，遇到var声明就提升到作用域顶部，遇到let和const就把这些声明放在暂时性死区。对于let和const变量，如果在执行它们的声明语句之前访问会报错，只有执行完声明语句之后才会从暂时性死区移出。
-
-#### Hoist
-
-函数、变量、类的声明都会发生 [Hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting)，但只有用 `var` 和 `function` 会自动初始化：
-
-> ver 为初始化 `undefined`
->
-> 函数声明 `function foo(){...}`，会在内存里创建函数对象，并且直接初始化为该函数对象。
-
-[Function expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function) 和 [Class expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes#class_expressions) 不会被 hoisted
-
-```javascript
-console.log(notHoisted)   // undefined
-                          // though the variable name is hoisted, the definition isn't.
-notHoisted();             // TypeError: notHoisted is not a function
-var notHoisted = function() {
-   console.log('bar');
-};
-
-
-const p = new Rectangle(); // ReferenceError
-class Rectangle {}
-```
-
-
-
-#### IIFE
-
-以前只有 `var`，不支持块级作用域的时候，使用了一个技巧（immediately-invoked function expressions，简称 IIFE）来模拟块级作用域。
-
-*So, the parentheses around the function is a trick to show JavaScript that the function is created in the context of another expression, and hence it’s a **Function Expression: it needs no name and can be called immediately.*** —— [参考](https://javascript.info/var)
-
-一个 `Function` 作为一个函数是要有名字的，如果把它变成一个表达式（Expression），就能不需要名字立即执行。除了括号之外还有其它方式把函数变成表达式：
-
-```javascript
-// Ways to create IIFE (Function expression)
-
-(function() {
-  alert("Parentheses around the function");
-})();
-
-(function() {
-  alert("Parentheses around the whole thing");
-}());
-
-!function() {
-  alert("Bitwise NOT operator starts the expression");
-}();
-
-+function() {
-  alert("Unary plus starts the expression");
-}();
-```
-
-**Let’s note again: nowadays there’s no reason to write such code.** `var` 是历史遗留的老写法，IIFE 是为了解决 `var` 的
-
-
-
-### Types
+### 变量类型
 
 **基本类型**（基本数值、基本数据类型）是一种既非[对象](https://developer.mozilla.org/zh-CN/docs/Glossary/Object)也无[方法](https://developer.mozilla.org/zh-CN/docs/Glossary/Method)的数据，有以下 7 种基本类型：
 
-string、number、bigint、boolean、null、undefined、symbol
+`string`、`number`、`bigint`、`boolean`、`null`、`undefined`、`symbol`
 
 基本类型是不可变的（immutable），值传递
 
@@ -188,7 +85,7 @@ Object.prototype.toString.call([]) ; // [object Array]
 Object.prototype.toString.call(new RegExp()) ; // [object RegExp]
 Object.prototype.toString.call(new Error()) ; // [object Error]
 Object.prototype.toString.call(document) ; // [object HTMLDocument]
-Object.prototype.toString.call(window) ; //[object global] window 是全局对象 global 的引用
+Object.prototype.toString.call(window) ; //[object Window]
 ```
 
 
@@ -218,7 +115,7 @@ NaN == undefined  // false
 
 <img src="readme/null-vs-undefined.png" alt="img" style="zoom:50%;" />
 
-#### =\=, ===
+#### ==, ===
 
 The `==` operator will compare for equality *after doing any necessary type conversions*. 
 
@@ -250,6 +147,109 @@ null == undefined   // true
 
 ' \t\r\n ' == 0     // true
 ```
+
+
+
+### 变量定义
+
+如果直接给变量赋值，那这个变量是全局变量
+
+```javascript
++function() {n = 1}() // IIFE 立即执行，还可以加 - ，!，()
+
+console.log(n) // 1
+```
+
+#### var
+
+`var` 比较古老，现在很少用，具有以下特性：
+
++ **不支持块作用域**：要么是函数作用域，要么是全局作用域
++ **允许重复声明**：可以重复声明，最后一次声明会覆盖前一次
++ 变量提升的时候会初始化为 `undefined`
+
+```javascript
+console.log(x);      // undefined
+if (true) {
+    var x = 10
+    console.log(x);  // 10
+    var x = 20
+}
+console.log(x);      // 20
+```
+
+#### let，const
+
+`let` 和 `const` 具有以下特性：
+
++ 支持块作用域
+
++ 不允许重复声明
+
++ 变量提升的时候不会初始化为 `undefined`，直接使用会报错，不同的环境报不同的错
+
+    ![my-console-hoisting-not-defined](readme/my-console-hoisting-not-defined.png)
+
+    有的是 `Cannot access before initialization`
+
+    在进入作用域创建变量，到变量可以被访问之间的这一段时间，称为 **“暂时性死区”**（ temporal dead zone，简称 **TDZ**）
+
+在JS引擎扫描代码发现变量声明时，遇到var声明就提升到作用域顶部，遇到let和const就把这些声明放在暂时性死区。对于let和const变量，如果在执行它们的声明语句之前访问会报错，只有执行完声明语句之后才会从暂时性死区移出。
+
+#### 变量提升（Hoist）
+
+函数、变量、类的声明都会发生 [Hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting)，但只有用 `var` 和 `function` 会自动初始化：
+
+> ver 为初始化 `undefined`
+>
+> 函数声明 `function foo(){...}`，会在内存里创建函数对象，并且直接初始化为该函数对象。
+
+[Function expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function) 和 [Class expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes#class_expressions) 不会被 hoisted
+
+```javascript
+console.log(notHoisted)   // undefined
+                          // though the variable name is hoisted, the definition isn't.
+notHoisted();             // TypeError: notHoisted is not a function
+var notHoisted = function() {
+   console.log('bar');
+};
+
+
+const p = new Rectangle(); // ReferenceError
+class Rectangle {}
+```
+
+
+
+#### IIFE
+
+以前只有 `var`，不支持块级作用域的时候，使用了一个技巧（immediately-invoked function expressions，简称 IIFE）来模拟块级作用域。
+
+*So, the parentheses around the function is a trick to show JavaScript that the function is created in the context of another expression, and hence it’s a **Function Expression: it needs no name and can be called immediately.*** —— [参考](https://javascript.info/var)
+
+一个 `Function` 作为一个函数是要有名字的，如果把它变成一个表达式（Expression），就能不需要名字立即执行。除了括号之外还有其它方式把函数变成表达式：
+
+```javascript
+// Ways to create IIFE (Function expression)
+
+(function() {
+  alert("Parentheses around the function");
+})();
+
+(function() {
+  alert("Parentheses around the whole thing");
+}());
+
+!function() {
+  alert("Bitwise NOT operator starts the expression");
+}();
+
++function() {
+  alert("Unary plus starts the expression");
+}();
+```
+
+**Let’s note again: nowadays there’s no reason to write such code.** `var` 是历史遗留的老写法，IIFE 是为了解决 `var` 的
 
 
 
@@ -431,7 +431,9 @@ console.log(rabbit.__proto__.sex)  // 100，animal 也被改变了
 
 
 
-### this
+### 函数
+
+#### this
 
 **TL;DR**：**谁调用函数，这个函数中的 `this` 就是谁**。比如：[参考](https://zhuanlan.zhihu.com/p/354848228)
 
@@ -479,13 +481,18 @@ var normal = new Normal();
 
 
 
-### call / apply, bind
+#### call / apply
 
-也可以为函引指定上下文  `this` 
+两者比较类似
 
-+ `func.apply(context, [...args])`：执行一个函数，参数为数组
-+ `func.call(context, ...args)`：执行一个函数，参数为 *iterable* `args` 
-+ `func.bind(context, [arg1], [arg2], ...)`：创建一个和 `func` 一样的函数，但是把它的上下文设置为传入的 `context`，如果还传有参数，也同把参数设置好
++ `func.apply(context, [...args])`：执行一个函数，参数为数组，函数的上下文 `this` 为传入的 `context` 对象
++ `func.call(context, ...args)`：执行一个函数，参数为 *iterable* `args` ，函数的上下文 `this` 为传入的 `context` 对象
+
+
+
+#### bind
+
+用法：`func.bind(context, [arg1], [arg2], ...)`：创建一个和 `func` 一样的函数，但是把它的上下文设置为传入的 `context`，如果还传有参数，也同把参数设置好
 
 ```javascript
 function mul(a, b) {
@@ -499,11 +506,7 @@ alert( double(3) ); // = mul(2, 3) = 6
 alert( triple(4) ); // = mul(3, 4) = 12
 ```
 
-
-
 **使用场景**：Usually we apply `bind` to fix `this` for an object method, so that we can pass it somewhere. For example, to `setTimeout`。
-
-
 
 如果想固定部分参数，但不固定上下文 `this`，For example, for an object method。
 
@@ -532,21 +535,48 @@ user.sayNow("Hello"); // [10:00] John: Hello!
 
 
 
-### 闭包
+### 词法环境
 
-[阮一峰](https://www.ruanyifeng.com/blog/2009/08/learning_javascript_closures.html)是这么描述的：闭包可以理解成定义在一个函数内部的函数，是将函数内部和函数外部连接起来的一座桥梁。
+在 V8 引擎词法分析阶段，有一个词法环境对象 **Lexical Environment** 用来登记执行上下文里的变量
 
-[javascript.info](https://javascript.info/closure) 上的概括为：*A closure is a function that remembers its outer variables and can access them.*
-
-
-
-**闭包的原理**：[参考](https://javascript.info/closure)
+>  词法分析后解析生成AST，最后生成机器码执行
 
 词法环境与我们自己写的代码结构相对应，也就是我们自己代码写成什么样子，词法环境就是什么样子。
 
-> 词法环境 Lexical Environment 是在 V8 引擎词法分析阶段用来登记变量的，词法分析后解析生成AST，最后生成机器码执行
+> 在代码定义的时候决定的，跟代码在哪里调用没有关系。 [参考](https://limeii.github.io/2019/05/js-lexical-environment/)
 
-**词法环境是在代码定义的时候决定的，跟代码在哪里调用没有关系**。[参考](https://limeii.github.io/2019/05/js-lexical-environment/)，每个词法环境都会有个 `outer` 指向上一层的词法环境对象
+词法环境对象由**两部分**组成：
+
+1. 环境记录（Environment Record）：一个存储所有局部变量作为其属性（包括一些其他信息，例如 `this` 的值）的对象。
+2. 对 **外部词法环境** 的引用 `outer` ，与外部代码相关联。
+
+
+
+比如：
+
+```javascript
+function makeCounter() {
+  let count = 0;
+
+  return function() {
+    return count++;
+  };
+}
+
+let counter = makeCounter();
+```
+
+在每次 `makeCounter()` 调用的开始，都会创建一个新的词法环境对象，以存储该 `makeCounter` 运行时的变量。
+
+因此，我们有两层嵌套的词法环境，就像上面的示例一样：
+
+![closure-makecounter](readme/closure-makecounter.svg)
+
+不同的是，在执行 `makeCounter()` 的过程中创建了一个仅占一行的嵌套函数：`return count++`。
+
+**我们尚未运行它，仅创建了它。所有的函数在“诞生”时都会记住创建它们的词法环境。**
+
+从技术上讲，这里没有什么魔法：所有函数都有名为 `[[Environment]]` 的隐藏属性，该属性保存了对创建该函数的词法环境的引用。
 
 ![img](readme/closure-makecounter-environment.svg)
 
@@ -554,16 +584,28 @@ user.sayNow("Hello"); // [10:00] John: Hello!
 
 ![img](readme/closure-makecounter-nested-call.svg)
 
-**闭包**就是指：执行完的 `执行上下文` 被弹出执行栈，它的词法环境处于失联状态，后续的执行上下文没办法直接访问这个失联的词法环境。在这种情况下还保留了对那个词法环境的`引用`，从而可以通过这个`引用`去访问失联的词法环境，这个`引用`就是闭包。
+
+
+#### 闭包
+
+[阮一峰](https://www.ruanyifeng.com/blog/2009/08/learning_javascript_closures.html)是这么描述的：闭包可以理解成定义在一个函数内部的函数，是将函数内部和函数外部连接起来的一座桥梁。
+
+[javascript.info](https://javascript.info/closure) 上的概括为：指一个函数可以记住其外部变量并可以访问这些变量。
+
+> *A closure is a function that remembers its outer variables and can access them.*
+
+在 JavaScript 中，函数是天生闭包的，因为函数会自动通过隐藏的 `[[Environment]]` 属性记住创建它们的位置，所以它们都可以访问外部变量。
+
+
+
+**闭包**的本质是：执行完的 `执行上下文` 被弹出执行栈，它的词法环境处于失联状态，后续的执行上下文没办法直接访问这个失联的词法环境。在这种情况下还保留了对那个词法环境的`引用`，从而可以通过这个`引用`去访问失联的词法环境，这个`引用`就是闭包。
+
+闭包的作用：可以读取函数内部的变量，另一个就是让这些变量的值始终保持在内存中
 
 典型的闭包:  
 
 1. 将函数作为另一个函数的返回值  
 2. 将函数作为实参传给另一个函数调用
-
-闭包的作用：可以读取函数内部的变量，另一个就是让这些变量的值始终保持在内存中
-
-
 
 缺点：函数定义的变量和数据会一直存在内部函数中，容易导致内存泄漏  
 
@@ -588,120 +630,70 @@ g = null; // ...and now the memory is cleaned up
 
 
 
-### ES6 的新特性 
+### 事件循环
 
-**新的变量声明**：let，const
+[参考](https://javascript.info/event-loop#macrotasks-and-microtasks)；[HTML 标准](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)；[视频](https://www.youtube.com/watch?v=8aGhZQkoFbQ)
 
-**新的语法**：[参考](https://juejin.cn/post/6844903618810757128)
+Immediately after every **macrotask**, the engine executes all tasks from **microtask** queue, prior to running any other macrotasks or rendering or anything else.
 
-+ 模板字符串
+The richer event loop picture looks like this (order is from top to bottom, that is: the script first, then microtasks, rendering and so on):
 
-    ```javascript
-    let name = "kris"
-    let str = `字符 ${name} 串`
-    ```
+![eventloop](readme/eventloop.svg)
 
-+ 对象，数组解构
+All microtasks are completed before any other event handling or rendering or any other macrotask takes place.
 
-    ```javascript
-    const {  } = obj
-    const [  ] = arr
-    ```
+That’s important, as it guarantees that **the application environment is basically the same** (no mouse coordinate changes, no new network data, etc) **between microtasks.**
 
-+ 展开操作符
+#### MicroTasks
 
-    ```javascript
-    let arr = [1,2,3];
-    console.log(...arr);
-    
-    function foo(...args) {
-      console.log(args);
-    }
-    
-    foo( 1, 2, 3, 4, 5);
-    ```
+They are usually created by promises: an execution of `.then/catch/finally` handler becomes a microtask. Microtasks are used “under the cover” of `await` as well, as it’s another form of promise handling.
 
-+ 箭头函数：箭头函数表达式的语法比函数表达式更简洁
+There’s also a special function `queueMicrotask(func)` that queues `func` for execution in the microtask queue.
 
-    + 没有自己的`this`，外共用部非箭头函数的 `this`，适合作为回调函数
+#### MacroTasks
 
-    + 没有 `prototype` 属性，不能用作构造函数（不能 new）
+setTimeout，Scripts，Events
 
-    + 没有 `arguments`，可以通过 [剩余参数语法](https://link.zhihu.com/?target=https%3A//developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Rest_parameters) 获取到全部参数
+#### Queue
 
-        ```javascript
-        const arrow = (...arg) => {
-          console.log(arg); // => [1, [1, 2], [1, 2, 3]]
-        }
-        arrow(1, [1, 2], [1, 2, 3]);
-        ```
+An [event loop](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop) has one or more task queues. A [task queue](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue) is a [set](https://infra.spec.whatwg.org/#ordered-set) of [tasks](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task).
 
-+ 函数默认值
+> [Task queues](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue) are [sets](https://infra.spec.whatwg.org/#ordered-set), not [queues](https://infra.spec.whatwg.org/#queue), because [step one of the event loop processing model](https://html.spec.whatwg.org/multipage/webappapis.html#step1) grabs the first [*runnable*](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task-runnable) [task](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task) from the chosen queue, instead of [dequeuing](https://infra.spec.whatwg.org/#queue-dequeue) the first task.
+>
+> The [microtask queue](https://html.spec.whatwg.org/multipage/webappapis.html#microtask-queue) is not a [task queue](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue).
 
-**新的功能：**
+#### 流程
 
-+ ```javascript
-    let stus = ['Sam', '22', '男'];
-    
-    for (let stu in stus) {
-      console.log(stu);
-    } // 0，1，2；遍历 key
-    
-    for (let stu of stus) {
-      console.log(stu);
-    } // Sam，22，男；遍历 value
-    ```
+1. 执行一个宏任务（栈中没有就从事件队列中获取）
+2. 执行过程中如果遇到微任务，就将它添加到微任务的任务队列中
+3. 宏任务执行完毕后，立即执行当前微任务队列中的所有微任务（依次执行）
+4. 当前宏任务执行完毕，开始检查渲染，然后GUI线程接管渲染
+5. 渲染完毕后，JS线程继续接管，开始下一个宏任务（从事件队列中获取，也就是 callbacke queue）
 
-    ```javascript
-    let animal = {
-      eats: true
-    };
-    
-    let rabbit = {
-      jumps: true,
-      __proto__: animal
-    };
-    
-    // for..in 遍历包括继承属性
-    for(let prop in rabbit) alert(prop); // jumps, eats
-    ```
-    
-    
-    
-+ Class：不是新的对象继承模型，只是原型链的语法糖表现形式
+![js-eventloop](readme\js-eventloop17.jpg)
 
-+ Set：里面的元素不重复，用于数组去重
+To schedule a new *macrotask*:
 
-+ Symbol：独一无二的对象，可以在 object 中添加一些隐藏属性，不用担心之后被重写覆盖
+- Use zero delayed `setTimeout(f)`.
 
-#### Generator
+That may be used to split a big calculation-heavy task into pieces, for the browser to be able to react to user events and show progress between them.
 
-迭代器：元素只有在被需要的时候才产生，无限序列的生成
+Also, used in event handlers to schedule an action after the event is fully handled (bubbling done).
 
-```javascript
-function *fibonacci() {
-    let a = 0, b = 1, c;
-    while (true) {
-        yield a
-        c = a
-        a = b
-        b = a + c
-    }
-}
+To schedule a new *microtask*
 
-let fib = fibonacci()
-for(let i = 0; i < 10; i++) {
-    console.log(fib.next().value);
-}
-```
+- Use `queueMicrotask(f)`.
+- Also promise handlers go through the microtask queue.
+
+There’s no UI or network event handling between microtasks: they run immediately one after another.
+
+So one may want to `queueMicrotask` to execute a function asynchronously, but within the environment state.
 
 
 
-#### Proxy
-
-A `Proxy` object wraps another object and intercepts operations, like reading/writing properties and others, optionally handling them on its own, or transparently allowing the object to handle them. [参考](https://javascript.info/proxy)
-
-对一个实例的封装，里面可以做一些类似于装饰器的动作。在业务和实例之间加了一层。
+>   宏任务（macrotasks）:  主js、UI渲染、setTimeout、setInterval、setImmediately、requestAnimationFrame、I/O等  
+>
+> 微任务（microtasks）：process.nextTick()、promise.then()（new Promise不算！）、Object.observe()等 
 
 
 
@@ -838,80 +830,124 @@ Promise.all([
 
 
 
-### Eventloop
+### ES6 的新特性 
 
-[参考](https://javascript.info/event-loop#macrotasks-and-microtasks)；[HTML 标准](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)；[视频](https://www.youtube.com/watch?v=8aGhZQkoFbQ)
+**新的变量声明**：let，const
 
-Immediately after every **macrotask**, the engine executes all tasks from **microtask** queue, prior to running any other macrotasks or rendering or anything else.
+**新的语法**：[参考](https://juejin.cn/post/6844903618810757128)
 
-The richer event loop picture looks like this (order is from top to bottom, that is: the script first, then microtasks, rendering and so on):
++ 模板字符串
 
-![eventloop](readme/eventloop.svg)
+  ```javascript
+  let name = "kris"
+  let str = `字符 ${name} 串`
+  ```
 
-All microtasks are completed before any other event handling or rendering or any other macrotask takes place.
++ 对象，数组解构
 
-That’s important, as it guarantees that **the application environment is basically the same** (no mouse coordinate changes, no new network data, etc) **between microtasks.**
+  ```javascript
+  const {  } = obj
+  const [  ] = arr
+  ```
 
-#### MicroTasks
++ 展开操作符
 
-They are usually created by promises: an execution of `.then/catch/finally` handler becomes a microtask. Microtasks are used “under the cover” of `await` as well, as it’s another form of promise handling.
+  ```javascript
+  let arr = [1,2,3];
+  console.log(...arr);
+  
+  function foo(...args) {
+    console.log(args);
+  }
+  
+  foo( 1, 2, 3, 4, 5);
+  ```
 
-There’s also a special function `queueMicrotask(func)` that queues `func` for execution in the microtask queue.
++ 箭头函数：箭头函数表达式的语法比函数表达式更简洁
 
-#### MacroTasks
+  + 没有自己的`this`，外共用部非箭头函数的 `this`，适合作为回调函数
 
-setTimeout，Scripts，Events
+  + 没有 `prototype` 属性，不能用作构造函数（不能 new）
 
-#### Queue
+  + 没有 `arguments`，可以通过 [剩余参数语法](https://link.zhihu.com/?target=https%3A//developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Rest_parameters) 获取到全部参数
 
-An [event loop](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop) has one or more task queues. A [task queue](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue) is a [set](https://infra.spec.whatwg.org/#ordered-set) of [tasks](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task).
+    ```javascript
+    const arrow = (...arg) => {
+      console.log(arg); // => [1, [1, 2], [1, 2, 3]]
+    }
+    arrow(1, [1, 2], [1, 2, 3]);
+    ```
 
-> [Task queues](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue) are [sets](https://infra.spec.whatwg.org/#ordered-set), not [queues](https://infra.spec.whatwg.org/#queue), because [step one of the event loop processing model](https://html.spec.whatwg.org/multipage/webappapis.html#step1) grabs the first [*runnable*](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task-runnable) [task](https://html.spec.whatwg.org/multipage/webappapis.html#concept-task) from the chosen queue, instead of [dequeuing](https://infra.spec.whatwg.org/#queue-dequeue) the first task.
++ 函数默认值
 
-> The [microtask queue](https://html.spec.whatwg.org/multipage/webappapis.html#microtask-queue) is not a [task queue](https://html.spec.whatwg.org/multipage/webappapis.html#task-queue).
+**新的功能：**
 
-#### Summary
++ ```javascript
+  let stus = ['Sam', '22', '男'];
+  
+  for (let stu in stus) {
+    console.log(stu);
+  } // 0，1，2；遍历 key
+  
+  for (let stu of stus) {
+    console.log(stu);
+  } // Sam，22，男；遍历 value
+  ```
 
-A more detailed event loop algorithm (though still simplified compared to the [specification](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop-processing-model)):
+  ```javascript
+  let animal = {
+    eats: true
+  };
+  
+  let rabbit = {
+    jumps: true,
+    __proto__: animal
+  };
+  
+  // for..in 遍历包括继承属性
+  for(let prop in rabbit) alert(prop); // jumps, eats
+  ```
 
-1. Dequeue and run the oldest task from the *macrotask* queue (e.g. “script”).
-2. Execute all microtasks:
-    - While the microtask queue is not empty:
-        - Dequeue and run the oldest microtask.
-3. Render changes if any.
-4. If the macrotask queue is empty, wait till a macrotask appears.
-5. Go to step 1.
+  
 
-To schedule a new *macrotask*:
++ Class：不是新的对象继承模型，只是原型链的语法糖表现形式
 
-- Use zero delayed `setTimeout(f)`.
++ Set：里面的元素不重复，用于数组去重
 
-That may be used to split a big calculation-heavy task into pieces, for the browser to be able to react to user events and show progress between them.
++ Symbol：独一无二的对象，可以在 object 中添加一些隐藏属性，不用担心之后被重写覆盖
 
-Also, used in event handlers to schedule an action after the event is fully handled (bubbling done).
+#### Generator
 
-To schedule a new *microtask*
+迭代器：元素只有在被需要的时候才产生，无限序列的生成
 
-- Use `queueMicrotask(f)`.
-- Also promise handlers go through the microtask queue.
+```javascript
+function *fibonacci() {
+    let a = 0, b = 1, c;
+    while (true) {
+        yield a
+        c = a
+        a = b
+        b = a + c
+    }
+}
 
-There’s no UI or network event handling between microtasks: they run immediately one after another.
-
-So one may want to `queueMicrotask` to execute a function asynchronously, but within the environment state.
-
-
-
->   宏任务（macrotasks）:  
->
-> **主js、UI渲染**
->
-> 、setTimeout、setInterval、setImmediately、requestAnimationFrame、I/O等  
->
->  微任务（microtasks）：process.nextTick()、promise.then()（new Promise不算！）、Object.observe()等 
+let fib = fibonacci()
+for(let i = 0; i < 10; i++) {
+    console.log(fib.next().value);
+}
+```
 
 
 
-### Clone
+#### Proxy
+
+A `Proxy` object wraps another object and intercepts operations, like reading/writing properties and others, optionally handling them on its own, or transparently allowing the object to handle them. [参考](https://javascript.info/proxy)
+
+对一个实例的封装，里面可以做一些类似于装饰器的动作。在业务和实例之间加了一层。
+
+
+
+### 对象拷贝
 
 [参考](https://www.freecodecamp.org/news/copying-stuff-in-javascript-how-to-differentiate-between-deep-and-shallow-copies-b6d8c1ef09cd/)
 
@@ -928,8 +964,6 @@ So one may want to `queueMicrotask` to execute a function asynchronously, but wi
 
 + 借助 `Json` 转换，会丢失方法
 + 手动递归复制
-
-
 
 
 
