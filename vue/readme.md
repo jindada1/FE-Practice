@@ -70,7 +70,6 @@ let Child = {
 ```
 
 
-
 ### nextTick
 
 先采用**微任务**并按照优先级优雅降级的方式实现**异步刷新**
@@ -136,9 +135,7 @@ export function nextTick(cb) {
 
 ### Virtual Dom
 
-virtual dom 诞生的原因：过多的操作 Dom 影响性能
-
-virtual dom 很多时候都不是最优的操作，但它具有普适性，在效率、可维护性之间达到平衡。
+我们在视图渲染之前，把写好的 template 模板先编译成 VNode 并缓存下来，等到数据发生变化页面需要重新渲染的时候，我们把数据发生变化后生成的 VNode 与前一次缓存下来的 VNode 进行对比，**然后有差异的 VNode 对应的真实 DOM 节点就是需要重新渲染的节点**，最后根据有差异的 VNode 创建出真实的 DOM 节点再插入到视图中，最终完成一次视图更新
 
 **virutal dom 的意义：**
 
@@ -151,12 +148,34 @@ virtual dom 很多时候都不是最优的操作，但它具有普适性，在�
 
 [总结](https://juejin.cn/post/6994959998283907102)：**Diff算法是一种对比算法**。对比两者是`旧虚拟DOM和新虚拟DOM`，对比出是哪个`虚拟节点`更改了，找出这个`虚拟节点`，并只更新这个虚拟节点所对应的`真实节点`，而不用更新其他数据没发生改变的节点，实现`精准`地更新真实DOM，进而`提高效率`。
 
-+ 使用虚拟DOM算法的损耗计算： 总损耗 = 虚拟DOM增删改+（与Diff算法效率有关）真实DOM差异增删改+（较少的节点）排版与重绘
-+ 直接操作真实DOM的损耗计算： 总损耗 = 真实DOM完全增删改+（可能较多的节点）排版与重绘
+`patch` 要做的事：
+
+1. 创建节点：新的 `VNode` 中有而旧的 `oldVNode` 中没有，就在旧的 `oldVNode` 中创建。
+2. 删除节点：新的 `VNode` 中没有而旧的 `oldVNode` 中有，就从旧的 `oldVNode` 中删除。
+3. 更新节点：新的 `VNode` 和旧的 `oldVNode` 中都有，就以新的 `VNode` 为准，更新旧的 `oldVNode` 。
+
 
 [参考 2：比较同层级同类型节点的子节点](https://www.infoq.cn/article/udlcpkh4iqb0cr5wgy7f)
 
 ![img](readme/1460000041134147.png)
+
+性能对比：
+
++ 使用虚拟DOM算法的损耗计算： 总损耗 = 虚拟DOM增删改+（与Diff算法效率有关）真实DOM差异增删改+（较少的节点）排版与重绘
++ 直接操作真实DOM的损耗计算： 总损耗 = 真实DOM完全增删改+（可能较多的节点）排版与重绘
+
+
+## 渲染
+
+![img](readme/render-process.png)
+
+
+
+## Vue3
+
+响应式[原理](https://vuejs.org/guide/extras/reactivity-in-depth.html#how-reactivity-works-in-vue)
+
+
 
 
 
