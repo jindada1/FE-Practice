@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Throttle</title>
+    </head>
+    <body>
+        <div id="console"></div>
+    </body>
+    <script>
+        const csl = document.getElementById('console');
+        function print(data) {
+            csl.innerHTML += `<div>${data}</div>`;
+        }
+
+        // 节流
+        function throttle(fn, delay = 1000) {
+            // 上依次执行该函数的时间戳
+            let previous = 0
+            return function (...args) {
+                const context = this;
+                // 获取当前时间
+                const now = new Date();
+                // 当前时间 - 上依次执行的时间 > 延迟时间，就执行
+                if (now - previous > delay) {
+                    fn.apply(context, args);
+                    previous = now;
+                }
+            };
+        }
+
+        function click(...args) {
+            print('click ' + JSON.stringify(args));
+        }
+
+        const thClick = throttle(click);
+
+        function loop(times, interval) {
+            if (times < 0) return;
+            thClick('tick')
+            setTimeout(() => {
+                loop(times - 1, interval)
+            }, interval)
+        }
+
+        loop(100, 100)
+    </script>
+</html>
