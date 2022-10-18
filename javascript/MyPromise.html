@@ -1,80 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Promise</title>
-  </head>
-  <body>
-    <div id="panel"></div>
-  </body>
-  <script>
-    const panel = document.getElementById("panel");
-    function show(msg) {
-      panel.innerHTML += `<div>${msg}</div>`;
-    }
-
-    function asyncFunc(cb, time = 1) {
-      setTimeout(cb, time * 1000);
-    }
-
-    // 极简的实现
-    class MyPromise {
-      callbacks = [];
-
-      PENDING = 0
-      FULLFILLED = 1
-      REJECTED = 2
-      
-      // 如果在 resolve 执行之后接入 then，比如 resolve 被同步执行
-      // 如果想获取结果，此时就需要保存状态和结果
-      state = this.PENDING; // 初始状态
-      value = null;    //保存结果
-      
-      // new Promise 对象时，调用传入的函数，把自己的 resolve 和 reject 作为参数注入
-      // 用户传入的函数中需要调用注入的 resolve 和 reject
-      constructor(fn) {
-        fn(this.resolve.bind(this));
-      }
-
-      then(onFulfilled) {
-        show(this.callbacks.length)
-        // 在 resolve 执行之前接入 then，加入回调队列
-        if (this.state === this.PENDING) {
-            this.callbacks.push(onFulfilled);
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>My Promise</title>
+    </head>
+    <body>
+        <div id="panel"></div>
+    </body>
+    <script>
+        const panel = document.getElementById('panel');
+        function show(msg) {
+            panel.innerHTML += `<div>${msg}</div>`;
         }
-        // 在 resolve 执行之后接入 then，直接传入结果调用回调
-        else {
-            onFulfilled(this.value)
+
+        function asyncFunc(cb, time = 1) {
+            setTimeout(cb, time * 1000);
         }
-        return this
-      }
 
-      resolve(value) {
-        // resolve 的时候更新状态，同时记录结果
-        this.state = this.FULLFILLED;
-        this.value = value
-        // 调用已注册的 then
-        this.callbacks.forEach((fn) => fn(value));
-      }
-    }
+        class MyPromise {
+            callbacks = [];
 
-    const p = new MyPromise((resolve) => {
-        // asyncFunc(() => resolve('resolve'))
-        resolve('sync resolve')
-    })
-    
-    p.then((res) => {
-        show(res + '1')
-    }).then((res) => {
-        show(res + '1.1')
-    })
+            PENDING = 0;
+            FULLFILLED = 1;
+            REJECTED = 2;
 
-    p.then((res) => {
-        show(res + '2')
-    })
+            // 如果在 resolve 执行之后接入 then，比如 resolve 被同步执行
+            // 如果想获取结果，此时就需要保存状态和结果
+            state = this.PENDING; // 初始状态
+            value = null; //保存结果
 
+            // new Promise 对象时，调用传入的函数，把自己的 resolve 和 reject 作为参数注入
+            // 用户传入的函数中需要调用注入的 resolve 和 reject
+            constructor(fn) {
+                show('*')
+                console.log(this);
+                fn(this.resolve.bind(this));
+            }
 
-  </script>
+            // 通过 .then 传入执行 onFulfilled 回调
+            then(onFulfilled) {
+                // 支持 then 链式调用，返回的是一个新的 Promise
+                // 这个新 Promise 注入的 resolve 先和 then 的内容（传入的 onFulfilled）绑定在一起存起来
+                return new MyPromise((_resolve) => {
+                    this._handle({
+                        onFulfilled: onFulfilled || null,
+                        resolve: _resolve,
+                    });
+                });
+            }
+
+            _handle(callback) {
+                // 在 resolve 执行之前接入 then，加入回调队列
+                if (this.state === this.PENDING) {
+                    this.callbacks.push(callback);
+                    return;
+                }
+
+                // 如果then中没有传递任何东西
+                if (!callback.onFulfilled) {
+                    // 将本次执行结果用回调的 resolve 给传出去
+                    callback.resolve(this.value);
+                    return;
+                }
+
+                // 在 resolve 执行之后接入 then，直接传入结果调用回调，获取回调的执行结果
+                const res = callback.onFulfilled(this.value);
+                // 将回调的执行结果用回调的 resolve 给传出去
+                // 如果此时的 res 是一个 Promise，那么 resolve res 的时候需要判断一下
+                callback.resolve(res);
+            }
+
+            resolve(value) {
+                // 如果被 resolve 的是一个 Promise
+                if (value instanceof MyPromise) {
+                    // 那么当这个 value 的执行完毕后，这次的 resolve 才会调用
+                    // 并且要获取这个 value 的执行结果
+                    const waitForThen = value.then;
+                    if (typeof waitForThen === 'function') {
+                        // 也就是把这次的 resolve 先加到 value 的回调队列里
+                        waitForThen.call(value, this.resolve.bind(this));
+                        return;
+                    }
+                }
+
+                // resolve 的时候更新状态，同时记录结果
+                this.state = this.FULLFILLED;
+                this.value = value;
+                // 调用已注册的 then
+                this.callbacks.forEach((callback) => this._handle(callback));
+            }
+        }
+
+        const p = new MyPromise((resolve) => {
+            asyncFunc(() => resolve('resolve'));
+        });
+
+        p.then((res) => {
+            show(res);
+            return new MyPromise((resolve) => {
+                asyncFunc(() => resolve(res + '.1'));
+            });
+        })
+            .then((res) => {
+                show(res);
+                return new MyPromise((resolve) => {
+                    asyncFunc(() => resolve(res + '.1'));
+                });
+            })
+            .then((res) => {
+                show(res);
+                return new MyPromise((resolve) => {
+                    asyncFunc(() => resolve(res + '.1'));
+                });
+            });
+
+        p.then((res) => {
+            show(res);
+        });
+    </script>
 </html>
