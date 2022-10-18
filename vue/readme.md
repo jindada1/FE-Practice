@@ -165,17 +165,9 @@ export function nextTick(cb) {
 + 直接操作真实DOM的损耗计算： 总损耗 = 真实DOM完全增删改+（可能较多的节点）排版与重绘
 
 
-## 渲染
+### 渲染
 
 ![img](readme/render-process.png)
-
-
-
-## Vue3
-
-响应式[原理](https://vuejs.org/guide/extras/reactivity-in-depth.html#how-reactivity-works-in-vue)
-
-
 
 
 
@@ -211,6 +203,6 @@ window.addEventListener('hashchange', matchAndUpdate)
 
 ![image.png](readme/74845abaa4404ee7a642a2c1168bdff4tplv-k3u1fbpfcp-zoom-in-crop-mark1304000.awebp)
 
-## Pinia
+## pinia
 
 https://pinia.web3doc.top/introduction.html
