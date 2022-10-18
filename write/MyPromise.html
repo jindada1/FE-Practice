@@ -34,19 +34,20 @@
             // new Promise 对象时，调用传入的函数，把自己的 resolve 和 reject 作为参数注入
             // 用户传入的函数中需要调用注入的 resolve 和 reject
             constructor(fn) {
-                show('*')
-                console.log(this);
-                fn(this.resolve.bind(this));
+                fn(this.resolve.bind(this), this.reject.bind(this));
             }
 
-            // 通过 .then 传入执行 onFulfilled 回调
-            then(onFulfilled) {
+            // 通过 .then 传入回调
+            // 第一个参数是成功的回调 onFulfilled ，第二个是 reject 的回调 onRejected
+            then(onFulfilled, onRejected) {
                 // 支持 then 链式调用，返回的是一个新的 Promise
                 // 这个新 Promise 注入的 resolve 先和 then 的内容（传入的 onFulfilled）绑定在一起存起来
-                return new MyPromise((_resolve) => {
+                return new MyPromise((_resolve, _reject) => {
                     this._handle({
                         onFulfilled: onFulfilled || null,
                         resolve: _resolve,
+                        onRejected: onRejected || null,
+                        reject: _reject,
                     });
                 });
             }
@@ -58,18 +59,35 @@
                     return;
                 }
 
-                // 如果then中没有传递任何东西
-                if (!callback.onFulfilled) {
-                    // 将本次执行结果用回调的 resolve 给传出去
-                    callback.resolve(this.value);
+                // 根据当前状态，决定使用哪个回调
+                let cb =
+                    this.state === this.FULLFILLED
+                        ? callback.onFulfilled
+                        : callback.onRejected;
+                let cbHandler =
+                    this.state === this.FULLFILLED
+                        ? callback.resolve
+                        : callback.reject;
+                // 如果 then 中没有传递任何回调
+                if (!cb) {
+                    // 将本次执行结果用回调的 resolve, reject 给传出去
+                    cbHandler(this.value);
                     return;
                 }
 
-                // 在 resolve 执行之后接入 then，直接传入结果调用回调，获取回调的执行结果
-                const res = callback.onFulfilled(this.value);
-                // 将回调的执行结果用回调的 resolve 给传出去
-                // 如果此时的 res 是一个 Promise，那么 resolve res 的时候需要判断一下
-                callback.resolve(res);
+                // 在状态转移之后执行之后接入 then
+                let res;
+                try {
+                    // 如果此时的 res 是一个 Promise，那么 cbHandler res 的时候需要判断一下
+                    // 直接传入结果调用回调，获取回调的执行结果
+                    res = cb(this.value);
+                } catch (error) {
+                    res = error;
+                    cbHandler = callback.reject;
+                } finally {
+                    // 将回调的执行结果用回调的 cbHandler 给传出去
+                    cbHandler(res);
+                }
             }
 
             resolve(value) {
@@ -91,6 +109,73 @@
                 // 调用已注册的 then
                 this.callbacks.forEach((callback) => this._handle(callback));
             }
+
+            reject(error) {
+                // reject 的时候更新状态，同时记录错误信息
+                this.state = this.REJECTED;
+                this.value = error;
+                // 调用已注册的 then
+                this.callbacks.forEach((callback) => this._handle(callback));
+            }
+
+            catch(onError) {
+                return this.then(null, onError);
+            }
+
+            finally(onDone) {
+                if (typeof onDone !== 'function') return this.then();
+                let MyPromise = this.constructor;
+                return this.then(
+                    (value) => MyPromise.resolve(onDone()).then(() => value),
+                    (reason) =>
+                        MyPromise.resolve(onDone()).then(() => {
+                            throw reason;
+                        })
+                );
+            }
+
+            static resolve(value) {
+                // 如果是 Promise 对象，原封不动
+                if (value && value instanceof MyPromise) {
+                    return value;
+                }
+                // 如果是一个 thenable 对象
+                else if (
+                    value &&
+                    typeof value === 'object' &&
+                    typeof value.then === 'function'
+                ) {
+                    let then = value.then;
+                    // 返回一个 Promise 对象，这个对象的 resolve 被注入到 thenable 对象的 resolve 中
+                    return new MyPromise((resolve) => {
+                        then(resolve);
+                    });
+                }
+                // 如果是一个普通对象或者变量，直接返回一个 resolve 的 Promise 对象
+                else if (value) {
+                    return new MyPromise((resolve) => resolve(value));
+                } else {
+                    return new MyPromise((resolve) => resolve());
+                }
+            }
+
+            static reject(value) {
+                // 如果是一个 thenable 对象
+                if (
+                    value &&
+                    typeof value === 'object' &&
+                    typeof value.then === 'function'
+                ) {
+                    let then = value.then;
+                    return new MyPromise((resolve, reject) => {
+                        then(reject);
+                    });
+                } 
+                // 返回一个 rejected 的 Promise 对象
+                else {
+                    return new MyPromise((resolve, reject) => reject(value));
+                }
+            }
         }
 
         const p = new MyPromise((resolve) => {
@@ -105,6 +190,7 @@
         })
             .then((res) => {
                 show(res);
+                throw 'error';
                 return new MyPromise((resolve) => {
                     asyncFunc(() => resolve(res + '.1'));
                 });
@@ -114,6 +200,9 @@
                 return new MyPromise((resolve) => {
                     asyncFunc(() => resolve(res + '.1'));
                 });
+            })
+            .catch((error) => {
+                show(error);
             });
 
         p.then((res) => {
