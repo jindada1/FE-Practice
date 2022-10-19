@@ -12,6 +12,7 @@
     <script>
         const panel = document.getElementById('panel');
         function show(msg) {
+            console.log(msg);
             panel.innerHTML += `<div>${msg}</div>`;
         }
 
@@ -19,8 +20,11 @@
             setTimeout(cb, time * 1000);
         }
 
+        let PCount = 0;
+
         class MyPromise {
             callbacks = [];
+            #id;
 
             PENDING = 0;
             FULLFILLED = 1;
@@ -34,6 +38,8 @@
             // new Promise 对象时，调用传入的函数，把自己的 resolve 和 reject 作为参数注入
             // 用户传入的函数中需要调用注入的 resolve 和 reject
             constructor(fn) {
+                this.#id = PCount++;
+                console.log('[create ->]', this);
                 fn(this.resolve.bind(this), this.reject.bind(this));
             }
 
@@ -91,16 +97,14 @@
             }
 
             resolve(value) {
+                console.log('【resolve]' + this.#id);
                 // 如果被 resolve 的是一个 Promise
                 if (value instanceof MyPromise) {
-                    // 那么当这个 value 的执行完毕后，这次的 resolve 才会调用
+                    let nextPromise = value;
+                    // 那么当这个 Promise 的执行完毕后，这次的 resolve 才会调用
                     // 并且要获取这个 value 的执行结果
-                    const waitForThen = value.then;
-                    if (typeof waitForThen === 'function') {
-                        // 也就是把这次的 resolve 先加到 value 的回调队列里
-                        waitForThen.call(value, this.resolve.bind(this));
-                        return;
-                    }
+                    nextPromise.then(this.resolve.bind(this));
+                    return;
                 }
 
                 // resolve 的时候更新状态，同时记录结果
@@ -111,6 +115,7 @@
             }
 
             reject(error) {
+                console.log('[reject]' + this.#id);
                 // reject 的时候更新状态，同时记录错误信息
                 this.state = this.REJECTED;
                 this.value = error;
@@ -145,10 +150,10 @@
                     typeof value === 'object' &&
                     typeof value.then === 'function'
                 ) {
-                    let then = value.then;
+                    let thenable = value;
                     // 返回一个 Promise 对象，这个对象的 resolve 被注入到 thenable 对象的 resolve 中
                     return new MyPromise((resolve) => {
-                        then(resolve);
+                        thenable.then(resolve);
                     });
                 }
                 // 如果是一个普通对象或者变量，直接返回一个 resolve 的 Promise 对象
@@ -170,7 +175,7 @@
                     return new MyPromise((resolve, reject) => {
                         then(reject);
                     });
-                } 
+                }
                 // 返回一个 rejected 的 Promise 对象
                 else {
                     return new MyPromise((resolve, reject) => reject(value));
@@ -182,31 +187,54 @@
             asyncFunc(() => resolve('resolve'));
         });
 
-        p.then((res) => {
+        console.log('then1');
+        const then1 = p.then((res) => {
             show(res);
             return new MyPromise((resolve) => {
                 asyncFunc(() => resolve(res + '.1'));
             });
-        })
-            .then((res) => {
-                show(res);
-                throw 'error';
-                return new MyPromise((resolve) => {
-                    asyncFunc(() => resolve(res + '.1'));
-                });
-            })
-            .then((res) => {
-                show(res);
-                return new MyPromise((resolve) => {
-                    asyncFunc(() => resolve(res + '.1'));
-                });
-            })
-            .catch((error) => {
-                show(error);
+        });
+
+        console.log('then2');
+        const then2 = then1.then((res) => {
+            show(res);
+            throw 'error';
+            return new MyPromise((resolve) => {
+                asyncFunc(() => resolve(res + '.2'));
             });
+        });
+
+        console.log('then3');
+        const then3 = then2.then((res) => {
+            show(res);
+            return new MyPromise((resolve) => {
+                asyncFunc(() => resolve(res + '.3'));
+            });
+        });
+
+        console.log('then4');
+        const then4 = then3.then((res) => {
+            show(res);
+            return new MyPromise((resolve) => {
+                asyncFunc(() => resolve(res + '.4'));
+            });
+        });
+
+        console.log('then5');
+        const then5 = then4.then((res) => {
+            show(res);
+            return new MyPromise((resolve) => {
+                asyncFunc(() => resolve(res + '.5'));
+            });
+        });
+
+        console.log('catch6');
+        const catch6 = then5.catch((error) => {
+            show(error);
+        });
 
         p.then((res) => {
-            show(res);
+            show('res');
         });
     </script>
 </html>

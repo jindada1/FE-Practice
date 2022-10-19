@@ -24,8 +24,9 @@
             return result * 2;
         })
 
-        console.log(p, th);
-        setTimeout(() => console.log(p, th), 1000);
+        console.log(th);
+        th = th.then(console.log)
+        th = th.then(console.log)
     });
 
     (function throw_error_in_then() {
@@ -38,10 +39,13 @@
             console.log(result); // 2
             throw new Error("qweqwe");
             return result * 2;
+        }, () => {
+            console.log('Error1');
         }).then(function (result) {
             console.log("3", result); // 4
             return result * 2;
-
+        }, () => {
+            console.log('Error2'); // 在 then 里面处理了，就不会传下去到 catch 里
         }).catch((err) => {
             console.log(err);
         });
