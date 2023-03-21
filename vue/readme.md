@@ -1,5 +1,7 @@
 ## Vue
 
+[原理](https://vue-js.com/learn-vue/start/)
+
 https://juejin.cn/post/6844903918753808398
 
 ### 生命周期

@@ -634,6 +634,10 @@ g = null; // ...and now the memory is cleaned up
 
 [参考](https://javascript.info/event-loop#macrotasks-and-microtasks)；[HTML 标准](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)；[视频](https://www.youtube.com/watch?v=8aGhZQkoFbQ)
 
+JS 是单线程的，或者说只有一个主线程，但是浏览器是事件驱动的，而且很多行为是异步的，所以需要有一个任务队列，主线程执行完某个任务时，事件循环从这个队列里取下一个任务继续执行。任务的来源可以是事件，或者WebAPI的回调函数等。
+
+任务又可以分为宏任务（Macrotask）和微任务（MicroTask）
+
 Immediately after every **macrotask**, the engine executes all tasks from **microtask** queue, prior to running any other macrotasks or rendering or anything else.
 
 The richer event loop picture looks like this (order is from top to bottom, that is: the script first, then microtasks, rendering and so on):
@@ -1067,7 +1071,7 @@ function promisify(f) {
 
       args.push(callback); // append our custom callback to the end of f arguments
 
-      f.call(this, ...args); // call the original function
+      f.call(this, ...args); // call the original function，这时其实是要求传进来的 f 能够接收回调函数
     });
   };
 }
