@@ -1,23 +1,31 @@
-# FE-Practice
- Brrrrrrrrrrrrr
+# 前端的一些小知识
 
-## 经典
+欢迎补充
 
-### TCP与UDP
+## 基础很重要
 
-1、基于连接与无连接；
-
-2、对系统资源的要求（TCP较多，UDP少）；
-
-3、UDP程序结构较简单；
-
-4、流模式与数据报模式 ；
-
-5、TCP保证数据正确性，UDP可能丢包；
-
-6、TCP保证数据顺序，UDP不保证。
++ javascript 需要系统学习，可以看[这里](https://javascript.info/)
++ 浏览器渲染原理也要学习
++ 框架会用，核心原理要懂
++ 工程上常用的工具的原理（经典webpack，比较新的vite）
 
 
-## 其它八股文
 
-https://juejin.cn/post/6844904030485872654
+## 比较不错的网站
+
++ 前端导航：http://www.alloyteam.com/nav/
++ 前端入门指南：https://www.samanthaming.com/
++ Vue 源码解析：https://vue-js.com/learn-vue/
++ 浏览器工作原理：https://blog.poetries.top/browser-working-principle/
++ 凹凸实验室：https://jelly.jd.com/teamhome/5b0ff3a0629834a34b663617
++ 淘系前端团队：https://fed.taobao.org/
+
+
+
+## 其他大佬的面经：
+
++ https://juejin.cn/post/6989422484722286600
++ https://lucifer.ren/fe-interview/#/
+
+
+
